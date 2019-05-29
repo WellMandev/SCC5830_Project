@@ -1,0 +1,76 @@
+public static int[] imageHistogram(BufferedImage input) {
+    int[] histogram = new int[256];
+    for(int i=0; i<histogram.length; i++) histogram[i] = 0;
+    for(int i=0; i<input.getWidth(); i++) {
+        for(int j=0; j<input.getHeight(); j++) {
+                int red = new Color(input.getRGB (i, j)).getRed();
+                histogram[red]++;
+        }
+    }
+    return histogram;
+}
+    
+ 
+private static int otsuTreshold(BufferedImage original) {
+    int[] histogram = imageHistogram(original);
+    int total = original.getHeight() * original.getWidth();
+    float sum = 0;
+    for(int i=0; i<256; i++) sum += i * histogram[i];
+    float sumB = 0;
+    int wB = 0;
+    int wF = 0;
+    float varMax = 0;
+    int threshold = 0;
+
+    for(int i=0 ; i<256 ; i++) {
+        wB += histogram[i];
+        if(wB == 0) continue;
+        wF = total - wB;
+        if(wF == 0) break;
+        sumB += (float) (i * histogram[i]);
+        float mB = sumB / wB;
+        float mF = (sum - sumB) / wF;
+        float varBetween = (float) wB * (float) wF * (mB - mF) * (mB - mF);
+        if(varBetween > varMax) {
+            varMax = varBetween;
+            threshold = i;
+        }
+    }
+ return threshold;
+}   
+
+
+
+private static BufferedImage toBinary(BufferedImage image, int t) {   //segmentation
+    int BLACK = Color.BLACK.getRGB();
+    int WHITE = Color.WHITE.getRGB();
+    BufferedImage output = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+    // Percorre a imagem definindo na saída o pixel como branco se o valor
+    // na entrada for menor que o threshold, ou como preto se for maior.
+    for (int y = 0; y < image.getHeight(); y++)
+            for (int x = 0; x < image.getWidth(); x++) {
+                    Color pixel = new Color(image.getRGB(x, y));
+                    output.setRGB(x, y, pixel.getRed()< t ? BLACK : WHITE);  //uso do treshold
+            }
+    return output;
+}
+
+
+public static void tira_fundo_preto(BufferedImage img, BufferedImage Bin,int alt, int larg, String nome){
+  //recuperar os pixels da imagem
+  Raster rasterBin = Bin.getRaster();
+  int BB=0 ;
+    //passar pixel a pixel trocando fundo preto por branco baseado na img binarizada
+     for (int i=0;i<alt;i++)         //i é a coord y da imagem
+         for(int j=0; j<larg;j++){   //j é a coord x da imagem
+             BB = rasterBin.getSample(j, i, 0);
+             if( BB == 0) {          //troca fundo preto pelo branco na mesma imagem
+               img.setRGB(j, i, 0xFFFFFFFF);   //white
+             } 
+         }
+     try {
+            ImageIO.write(img, "jpg", new File("C:\\temp\\analise\\"+nome+".jpg"));  //grava imagem
+         } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Erro ao troca fundo para branco. = "+ex);
+         }
+}    
