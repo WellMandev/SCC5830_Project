@@ -32,6 +32,6 @@ All necessary steps have been successfully implemented using Java language. The 
 ![Code](https://github.com/WellMandev/SCC5830_Project/blob/master/code)
 The greatest difficulties in implementing the code were:
 - image conversion to array and array to image
-- calculation of the value Osten automatic treshold
+- calculation of the value automatic Otsu treshold
 - equalize histogram
 - RGB to HSB conversion
