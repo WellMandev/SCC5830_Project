@@ -8,20 +8,20 @@ public static void main() throws Throwable {
   String  nome_arq = JOptionPane.showInputDialog(null, "Insira nome do arquivo a analisar:");
                    
              arq=nome_arq;
-             A= CarregaImagens(nome_arq);                             //carrega arq na variável A tipo BufferedImage
-             int alt =  A.getHeight();                               //identifica a altura e largura da imagem
+             A= CarregaImagens(nome_arq);                                     //carrega arq na variável A tipo BufferedImage
+             int alt =  A.getHeight();                                        //identifica a altura e largura da imagem
              int larg =  A.getWidth();
              filterGaussian(A,"C:\\temp\\analise\\"+nome_arq+"-gray.jpg");     //aplica filtro gaussiana - após salva img em grayscale
              C= CarregaImagensGray(nome_arq);                                  //pega img em escala de cinza
              binary = toBinary(C, otsuTreshold(C));                           //gera imagem segmentada/binarizada usando treshold
-             ByteProcessor processor = new ByteProcessor(binary);           //importação da library do software img 'ImageJ'
+             ByteProcessor processor = new ByteProcessor(binary);            //importação da library do software img 'ImageJ'
              processor.erode(1,0);                                           //aplica filtro para diminuir bordas do objeto(folhas verdes)
              bin_erode = (BufferedImage)processor.createImage();
              tira_fundo_preto(A, bin_erode, alt, larg, nome_arq+"B");       //substitui fundo preto da img original para branco
-             B= CarregaImagens(nome_arq+"B");                              //carrega novo arq img na variável B tipo BufferedImage
-             equalizacao(B);                                               //equaliza histograma
+             B= CarregaImagens(nome_arq+"B");                               //carrega novo arq img na variável B tipo BufferedImage
+             equalizacao(B);                                                //equaliza histograma
              E= CarregaImagens(nome_arq+"E"); 
-             media_ind_cor(E, alt, larg);                                  //varre img original para extrair RGB
+             media_ind_cor(E, alt, larg);                                   //varre img original para extrair RGB
       
 }   
     
@@ -193,6 +193,9 @@ public static void media_ind_cor(BufferedImage img, int alt, int larg){
      
 }
 
+    ////////////////////////////////////////
+    // Realiza a conversão do sistema de cores RGB para o sistema HSB
+    ////////////////////////////////////////
 public static void convertRGB_HSL(double R, double G, double B){
     double max, min;
     double UNDEF = 360.0;
@@ -289,7 +292,9 @@ public static Mat img2Mat(BufferedImage in, int w, int h) {
    return out;
  } 
 
-
+    ////////////////////////////////////////
+    //  Gera o valor do histograma Acumulado
+    ////////////////////////////////////////
 public static int[] calculaHistogramaAcumulado(int[] histograma) {
         int[] acumulado = new int[256];
         acumulado[0] = histograma[0];
@@ -300,6 +305,9 @@ public static int[] calculaHistogramaAcumulado(int[] histograma) {
         return acumulado;
     }
 
+    ////////////////////////////////////////
+    // pega o menor valor do histograma
+    ////////////////////////////////////////
 private static int menorValor(int[] histograma) {
         for(int i=0; i <histograma.length; i++) {
             if(histograma[i] != 0){
@@ -309,6 +317,9 @@ private static int menorValor(int[] histograma) {
    return 0;
 }
 
+    ////////////////////////////////////////
+    // gera uma matriz com mapa de cores de imagem
+    ////////////////////////////////////////
 private static int[] calculaMapadeCores(int[] histograma, int pixels) {
         int[] mapaDeCores = new int[256];
         int[] acumulado = calculaHistogramaAcumulado(histograma);
@@ -319,6 +330,9 @@ private static int[] calculaMapadeCores(int[] histograma, int pixels) {
     return mapaDeCores;
 }
 
+    ////////////////////////////////////////
+    // Realiza a equalização do histograma
+    ////////////////////////////////////////
 public static BufferedImage equalizacao(BufferedImage img) {
         //2.1- calcular histograma
         int[] histograma = imageHistogram(img);
