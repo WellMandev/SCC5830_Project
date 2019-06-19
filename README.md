@@ -6,7 +6,8 @@ Abstract: The objective of this project is to indicate through color using RGB s
 
 1. Main Objective:To indicate through leaf color of Brachiaria brizantha cv. Xaraés using RGB system, if this has sufficient or deficient nitrogen status, reling on the principle that N status of the plants can be describe by RGB wavelengths reflection, and that the leaf spectral signature can be accurately determined from field images acquired with a digital camera. 
 
-2. The description of input images: The file "Foto1.png", acquired by the student, is an example of an image obtained in the field, containing by the base in black background and leaves of Xaraés grass to be analyzed as to its composition in RGB. The RGB color can be converted to HSB color. The mean value RGB or HSB of leaf will be applied to vegetation indexes. Leaves texture will not be analyzed. 
+2. The description of input images: The file "Foto1.png", acquired by the student, is an example of an image obtained in the field, containing by the base in black background and leaves of Xaraés grass to be analyzed as to its composition in RGB. The RGB color can be converted to HSB color. The mean value RGB or HSB of leaf will be applied to vegetation indexes. Leaves texture will not be analyzed.
+
 Details image: ![Original_img](https://github.com/WellMandev/SCC5830_Project/blob/master/Foto1.jpg)
 
 3. The steps taken are: Gaussian type low pass; histogram equalization to normalize intensity levels; image conversion in grayscale; segmentation - through the Otsu threshold. 
@@ -17,7 +18,8 @@ Details:The file "Foto1-segment.png" ![Segmented_img](https://github.com/WellMan
 
 Next: extraction of the mean RGB value of grass leaves and color analysis with methods 'media_ind_cor()' and 'convertRGB_HSL()'.
 
-##Conclusion:
+
+# Conclusion:
 The initial purpose was achieved generating the segmented image without the background, making it possible to extract RGB values only from the leaves of the grass.
 All necessary steps have been successfully implemented using Java language. The code example can be seen in the "code" file.
 The greatest difficulties in implementing the code were:
