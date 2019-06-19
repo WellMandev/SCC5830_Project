@@ -1,4 +1,80 @@
-public static int[] imageHistogram(BufferedImage input) {
+/** @author Wellington Mancin
+ *  Obtenção de RGB de imagens de Brachiaria XARAES após segmentação e remoção de brackground
+ */
+
+public static void main() throws Throwable {    
+  System.loadLibrary( Core.NATIVE_LIBRARY_NAME );   ///para openCV rodar em x64   
+  BufferedImage A, B, C, binary, bin_erode, E; 
+  String  nome_arq = JOptionPane.showInputDialog(null, "Insira nome do arquivo a analisar:");
+                   
+             arq=nome_arq;
+             A= CarregaImagens(nome_arq);                             //carrega arq na variável A tipo BufferedImage
+             int alt =  A.getHeight();                               //identifica a altura e largura da imagem
+             int larg =  A.getWidth();
+             filterGaussian(A,"C:\\temp\\analise\\"+nome_arq+"-gray.jpg");     //aplica filtro gaussiana - após salva img em grayscale
+             C= CarregaImagensGray(nome_arq);                                  //pega img em escala de cinza
+             binary = toBinary(C, otsuTreshold(C));                           //gera imagem segmentada/binarizada usando treshold
+             ByteProcessor processor = new ByteProcessor(binary);           //importação da library do software img 'ImageJ'
+             processor.erode(1,0);                                           //aplica filtro para diminuir bordas do objeto(folhas verdes)
+             bin_erode = (BufferedImage)processor.createImage();
+             tira_fundo_preto(A, bin_erode, alt, larg, nome_arq+"B");       //substitui fundo preto da img original para branco
+             B= CarregaImagens(nome_arq+"B");                              //carrega novo arq img na variável B tipo BufferedImage
+             equalizacao(B);                                               //equaliza histograma
+             E= CarregaImagens(nome_arq+"E"); 
+             media_ind_cor(E, alt, larg);                                  //varre img original para extrair RGB
+      
+}   
+    
+ 
+      ////////////////////////////////////////////////////////////////
+      // carrega imagem automaticamente 
+      ////////////////////////////////////////////////////////////////
+public static BufferedImage CarregaImagens(String nome_arq) {
+    BufferedImage image = null;
+    File img = new File("C:\\temp\\analise\\"+nome_arq+".jpg");
+    try {
+          image = ImageIO.read(img);
+        } catch (IOException ex) {
+              JOptionPane.showMessageDialog(null, "Erro ao carregar imagem."+ex);
+        }
+    return image;
+}
+
+      ////////////////////////////////////////////////////////////////
+      // carrega imagem em tons de cinza (grayscale) automaticamente 
+      ////////////////////////////////////////////////////////////////
+public static BufferedImage CarregaImagensGray(String nome_arq) {
+    BufferedImage image = null;
+    File img = new File("C:\\temp\\analise\\"+nome_arq+"-gray.jpg");
+    try {
+         image = ImageIO.read(img);
+        } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, "Erro ao carregar imagem."+ex);
+        }
+    return image;
+}
+    
+ 
+    ////////////////////////
+    // Aplica filtro gaussiana para reduzir baixa frequencia
+    // já grava em escala de cinza, após o filtro, no momento da transf matriz para imagem
+    //////////////////////       
+public static void filterGaussian(BufferedImage im, String nomearq){ 
+    Mat source = img2Mat(im, im.getWidth(), im.getHeight());               //converte para matriz
+    Mat destination = new Mat(source.rows(),source.cols(),source.type());
+    Imgproc.GaussianBlur(source, destination,new Size(45,45), 0);          //usa filtro pronto do openCV
+    im = mat2Img(destination, im.getWidth(), im.getHeight());              //converte de matriz para imagem
+    try {
+        ImageIO.write(im, "jpg", new File(nomearq));                       //grava imagem em tons de cinza
+    } catch (IOException ex) {
+        JOptionPane.showMessageDialog(null, "Erro ao aplicar filtro Gaussiana."+ex);
+    }
+  } 
+
+      ////////////////////////////////////////////////////////////////
+      // Retorna histograma da imagem em escala de cinza - ou seja, só lê uma matriz, por isso pegar red
+      ////////////////////////////////////////////////////////////           
+ public static int[] imageHistogram(BufferedImage input) {
     int[] histogram = new int[256];
     for(int i=0; i<histogram.length; i++) histogram[i] = 0;
     for(int i=0; i<input.getWidth(); i++) {
@@ -10,7 +86,9 @@ public static int[] imageHistogram(BufferedImage input) {
     return histogram;
 }
     
- 
+      ////////////////////////////////////////////////////////////////
+      // Gera treshold Otsu automático da grayscale para gerar a img binarizada
+      ////////////////////////////////////////////////////////////           
 private static int otsuTreshold(BufferedImage original) {
     int[] histogram = imageHistogram(original);
     int total = original.getHeight() * original.getWidth();
@@ -39,9 +117,12 @@ private static int otsuTreshold(BufferedImage original) {
  return threshold;
 }   
 
-
-
-private static BufferedImage toBinary(BufferedImage image, int t) {   //segmentation
+      ////////////////////////////////////////////////////////////////
+      // converte imagem para binário usaldo algoritmo treshold Otsu calculado
+      // Tudo que estiver abaixo do threshold (parâmetro "t") será convertido para preto. Acima ou igual será convertido para branco.
+      // Imagem a ser convertida (apenas o canal r será considerado).
+      ////////////////////////////////////////////////////////////    
+ private static BufferedImage toBinary(BufferedImage image, int t) {   
     int BLACK = Color.BLACK.getRGB();
     int WHITE = Color.WHITE.getRGB();
     BufferedImage output = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
@@ -55,7 +136,9 @@ private static BufferedImage toBinary(BufferedImage image, int t) {   //segmenta
     return output;
 }
 
-
+      ////////////////////////////////////////////////////////////////
+      // tira fundo preto da imagem baseado na imagem binarizada, deixando-a com fundo branco
+      ////////////////////////////////////////////////////////////////
 public static void tira_fundo_preto(BufferedImage img, BufferedImage Bin,int alt, int larg, String nome){
   //recuperar os pixels da imagem
   Raster rasterBin = Bin.getRaster();
@@ -64,7 +147,7 @@ public static void tira_fundo_preto(BufferedImage img, BufferedImage Bin,int alt
      for (int i=0;i<alt;i++)         //i é a coord y da imagem
          for(int j=0; j<larg;j++){   //j é a coord x da imagem
              BB = rasterBin.getSample(j, i, 0);
-             if( BB == 0) {          //troca fundo preto pelo branco na mesma imagem
+             if( BB == 0) {     ///troca fundo preto pelo branco na mesma imagem
                img.setRGB(j, i, 0xFFFFFFFF);   //white
              } 
          }
@@ -73,4 +156,191 @@ public static void tira_fundo_preto(BufferedImage img, BufferedImage Bin,int alt
          } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Erro ao troca fundo para branco. = "+ex);
          }
-}    
+}     
+
+      ////////////////////////////////////////////////////////////////
+      // calculo da media individual de cada  r, g e b de todos pixels imagem  
+      ////////////////////////////////////////////////////////////////
+public static void media_ind_cor(BufferedImage img, int alt, int larg){
+  //recuperar os pixels da imagem
+  Raster raster = img.getRaster();
+  double soma_r=0.0, soma_g=0.0, soma_b=0.0, media_R=0.0, media_G=0.0, media_B=0.0, soma_matiz=0.0,media_matiz=0.0, media_brilho=0.0, media_sat=0.0;
+  int r=0, g=0, b=0, cont=0, BB=0 ;
+  
+  //passar pixel a pixel pegando valor e calculando a média simples
+     for (int i=0;i<alt;i++)         //i é a coord y da imagem
+        for(int j=0; j<larg;j++){    //j é a coord x da imagem
+            BB = img.getRGB(j, i);
+            if( BB != 0xFFFFFFFF) {            //se RGB da imagem Diferente de "branco", então pega RGB da folha
+               r = raster.getSample(j, i, 0);   //getSample (posicao x, posicao y, tipo banda: 0 = red, 1=green e 2=blue)
+               g = raster.getSample(j, i, 1);
+               b = raster.getSample(j, i, 2);
+                soma_r += r;            //computa a cor RGB para os calculos
+                soma_g += g;
+                soma_b += b;       
+                cont++;                 //conta +1 pixel lido
+            } 
+        }
+     media_R = soma_r/cont;    //calcula média pela qtde de pixels extraídos através da matiz válida
+     media_G = soma_g/cont;
+     media_B = soma_b/cont;
+          
+     System.out.print("\t R: ");System.out.printf("\t%.3f", media_R );
+     System.out.print("\t G: ");System.out.printf("\t%.3f", media_G );
+     System.out.print("\t B: ");System.out.printf("\t%.3f", media_B );
+     
+     calcula_IV(media_R, media_G, media_B);
+     
+}
+
+public static void convertRGB_HSL(double R, double G, double B){
+    double max, min;
+    double UNDEF = 360.0;
+    double delta;
+    double lightness=0.0;
+    double saturation = 0.0;
+    double hue = 0.0;
+    double media_matiz=0.0, media_brilho=0.0 , media_sat=0.0;
+    
+    // Acha os valores maximo e minimo
+        max = R;
+        if (max < G)
+            max = G;
+        if (max < B)
+            max = B;
+        min = R;
+        if (min > G)
+            min = G;
+        if (min > B)
+            min = B;
+      
+        if (max == B){
+           media_matiz= (60*((R-G)/(max-min)))+240;
+        }else if (max == G){
+                media_matiz=(60*((B-R)/(max-min)))+120;
+              }else if (max == R && G<B){
+                        media_matiz=(60*((G-B)/(max-min)))+360;
+                    }else if (max == R && G>=B){
+                            media_matiz=60*((G-B)/(max-min));
+                          }
+        media_sat=(max-min)/max;
+        media_brilho=max/255;
+     System.out.print("\t Matiz: ");System.out.printf("\t%.3f ", media_matiz);
+     System.out.print("\t Satur: ");System.out.printf("\t%.3f ", media_sat);
+     System.out.print("\t Brilho: ");System.out.printf("\t%.3f ", media_brilho);
+     System.out.printf("\t");       
+   
+    
+}
+
+      ////////////////////////////////////////////////////////////////
+      // calculo os índices vegetação com os valores rgb extraídos imagem  
+      ////////////////////////////////////////////////////////////////
+public static void calcula_IV(double media_R, double media_G, double media_B){
+        //realiza os calculos dos índices de vegetação, por fórmulas específicas, com valores de RGB e HSB extraídos nos demais métodos 
+}            
+  
+    ///////////////////////////////////////////
+    // Converte de Mat para BufferedImage
+    //////////////////////////////////////////
+public static BufferedImage mat2Img(Mat in, int w, int h){
+    BufferedImage out;
+    byte[] data = new byte[w * h * (int)in.elemSize()];
+    int type;
+    in.get(0, 0, data);
+    if(in.channels()== 1)
+        type = BufferedImage.TYPE_BYTE_GRAY;
+    else
+        type = BufferedImage.TYPE_3BYTE_BGR;
+    out = new BufferedImage(w, h, type);
+    out.getRaster().setDataElements(0, 0, w, h, data);
+  return out;
+} 
+   
+    ////////////////////////////////////////
+    // Converte de BufferedImage para Mat
+    ////////////////////////////////////////
+public static Mat img2Mat(BufferedImage in, int w, int h) {
+    Mat out;
+    byte[] data;
+    int r, g, b;
+    if(in.getType() == BufferedImage.TYPE_INT_RGB){
+      out = new Mat(h, w, CvType.CV_8UC3);  //rgb
+      data = new byte[w * h * (int)out.elemSize()];
+      int[] dataBuff = in.getRGB(0, 0, w, h, null, 0, w);
+      for(int i = 0; i < dataBuff.length; i++){
+          data[i*3] = (byte) ((dataBuff[i] >> 16) & 0xFF);
+          data[i*3 + 1] = (byte) ((dataBuff[i] >> 8) & 0xFF);
+          data[i*3 + 2] = (byte) ((dataBuff[i] >> 0) & 0xFF);
+      }
+    }
+    else{
+        out = new Mat(h, w, CvType.CV_8UC1);              //CvType.CV_8UC1 - e o tipo para escala de cinza
+        data = new byte[w * h * (int)out.elemSize()];
+        int[] dataBuff = in.getRGB(0, 0, w, h, null, 0, w);
+        for(int i = 0; i < dataBuff.length; i++){
+           r = (byte) ((dataBuff[i] >> 16) & 0xFF);
+           g = (byte) ((dataBuff[i] >> 8) & 0xFF);
+           b = (byte) ((dataBuff[i] >> 0) & 0xFF);
+           data[i] = (byte)((0.21 * r) + (0.71 * g) + (0.07 * b));   //luminosidade
+        }
+    }
+    out.put(0, 0, data);
+   return out;
+ } 
+
+
+public static int[] calculaHistogramaAcumulado(int[] histograma) {
+        int[] acumulado = new int[256];
+        acumulado[0] = histograma[0];
+        for(int i=1;i < histograma.length;i++) {
+
+            acumulado[i] = histograma[i] + acumulado[i-1];
+        }
+        return acumulado;
+    }
+
+private static int menorValor(int[] histograma) {
+        for(int i=0; i <histograma.length; i++) {
+            if(histograma[i] != 0){
+                return histograma[i];
+            }
+        }
+   return 0;
+}
+
+private static int[] calculaMapadeCores(int[] histograma, int pixels) {
+        int[] mapaDeCores = new int[256];
+        int[] acumulado = calculaHistogramaAcumulado(histograma);
+        float menor = menorValor(histograma);
+        for(int i=0; i < histograma.length; i++) {
+            mapaDeCores[i] = Math.round(((acumulado[i] - menor) / (pixels - menor)) * 255);
+        }
+    return mapaDeCores;
+}
+
+public static BufferedImage equalizacao(BufferedImage img) {
+        //2.1- calcular histograma
+        int[] histograma = imageHistogram(img);
+        //2.2- calcular novo mapa de cores
+        int[] mapaDeCores = calculaMapadeCores(histograma, img.getWidth() * img.getHeight());
+        //2.3- atualizar palheta de cores da imagem
+        BufferedImage out = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                Color color = new Color(img.getRGB(x, y));
+                int tom = color.getRed();
+                int newTom = mapaDeCores[tom];
+                Color newColor = new Color(newTom, newTom, newTom);
+                out.setRGB(x, y, newColor.getRGB());
+            }
+        }
+        // retornar imagem processada
+         try {
+         ImageIO.write(img, "jpg", new File("C:\\temp\\analise\\"+arq+"E.jpg"));  //grava imagem
+        } catch (IOException ex) {
+         JOptionPane.showMessageDialog(null, "Erro ao equalizar histograma."+ex);
+        }
+  return out;
+}
+
