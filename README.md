@@ -29,15 +29,9 @@ Next: extraction of the mean RGB value of grass leaves and color analysis with m
 # Conclusion:
 The initial purpose was achieved generating the segmented image without the background, making it possible to extract RGB values only from the leaves of the grass.
 All necessary steps have been successfully implemented using Java language. The code example can be seen in the "code" file.
+![Code](https://github.com/WellMandev/SCC5830_Project/blob/master/code)
 The greatest difficulties in implementing the code were:
 - image conversion to array and array to image
 - calculation of the value Osten automatic treshold
 - equalize histogram
 - RGB to HSB conversion
-
-
-
-
-
-
-
