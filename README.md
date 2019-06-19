@@ -9,14 +9,19 @@ To indicate through leaf color of Brachiaria brizantha cv. Xaraés using RGB sys
 
 # 2. The description of input images:
 The file "Foto1.png", acquired by the student, is an example of an image obtained in the field, containing by the base in black background and leaves of Xaraés grass to be analyzed as to its composition in RGB. The RGB color can be converted to HSB color. The mean value RGB or HSB of leaf will be applied to vegetation indexes. Leaves texture will not be analyzed. Details image: 
+
 ![Original_img](https://github.com/WellMandev/SCC5830_Project/blob/master/Foto1.jpg)
 
 # 3. The steps taken are:
 Gaussian type low pass; histogram equalization to normalize intensity levels; image conversion in grayscale; segmentation - through the Otsu threshold. 
-Details: The file "Foto1-bin.jpg" ![Binarized_img](https://github.com/WellMandev/SCC5830_Project/blob/master/Foto1-bin.jpg)
+Details: The file "Foto1-bin.jpg" 
+
+![Binarized_img](https://github.com/WellMandev/SCC5830_Project/blob/master/Foto1-bin.jpg)
 
 After: apply erode function; replaces black background from original img to white. 
-Details:The file "Foto1-segment.png" ![Segmented_img](https://github.com/WellMandev/SCC5830_Project/blob/master/Foto1-segment.jpg.png)
+Details:The file "Foto1-segment.png"
+
+![Segmented_img](https://github.com/WellMandev/SCC5830_Project/blob/master/Foto1-segment.jpg.png)
 
 Next: extraction of the mean RGB value of grass leaves and color analysis with methods 'media_ind_cor()' and 'convertRGB_HSL()'.
 
